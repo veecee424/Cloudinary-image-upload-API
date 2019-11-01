@@ -109,14 +109,19 @@ app.post("/upload", function(req, res) {
 
 
     cloudinary.uploader.upload(file.tempFilePath, { responsive_breakpoints: { 
-        create_derived: true, bytes_step: 20000, min_width: 200, max_width: 1000, 
+        create_derived: true, bytes_step: 20000, min_width: 200, max_width: 200, 
         transformation: { crop: 'fill', aspect_ratio: '1:1', gravity: 'auto' } } }, function(err, result) {
-        //console.log(file)
+        
         if(err) {
             return res.json({error: err});
         }
-            return res.json({success: result});
-            
+           result.responsive_breakpoints.forEach(function(image) {
+            image.breakpoints.forEach(function(responsive_image) {
+                return res.json({responsive_image});
+                
+            });
+           })
+           
         });
 }); 
 
