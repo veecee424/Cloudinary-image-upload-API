@@ -77,7 +77,7 @@ const options = {
  *              properties:        
  *                  file:
  *                      type: string
- *                      format: binary         
+ *                      format: binary        
  *      responses:
  *        "200":
  *          description: A user image
@@ -110,7 +110,7 @@ app.post("/upload", function(req, res) {
 
     cloudinary.uploader.upload(file.tempFilePath, { responsive_breakpoints: { 
         create_derived: true, bytes_step: 20000, min_width: 200, max_width: 1000, 
-        transformation: { crop: 'fill', aspect_ratio: '16:9', gravity: 'auto' } } }, function(err, result) {
+        transformation: { crop: 'fill', aspect_ratio: '1:1', gravity: 'auto' } } }, function(err, result) {
         //console.log(file)
         if(err) {
             return res.json({error: err});
