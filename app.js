@@ -89,9 +89,14 @@ const options = {
 
 //UPLOAD ROUTE
 app.post("/upload", function(req, res) {
+
+    if(req.files == undefined) {
+        return res.json({Error: "Select an image file"});
+    }
     
     const file = req.files.file;
-    console.log(file);
+      
+
        if (file.size > 1000000) {
         return res.json({Sorry: "File too large, must be less than 1mb"});
     } 
@@ -101,6 +106,7 @@ app.post("/upload", function(req, res) {
             return res.json({Error: "Uplaod a valid image format (png, jpg, jpeg)"})
         }
     }
+
 
     cloudinary.uploader.upload(file.tempFilePath, function(result, err) {
         //console.log(file)
@@ -112,8 +118,6 @@ app.post("/upload", function(req, res) {
         });
 }); 
 
-
-  
 
 
 
