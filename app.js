@@ -4,12 +4,27 @@ const dotenv = require("dotenv").config();
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require('./swagger.json');
 const swaggerJsdoc = require('swagger-jsdoc');
+const multer = require("multer");
 
 
 const app = express();
-app.use(fileUpload({
-    useTempFiles : true,
-}));
+
+let storage = multer.diskStorage({
+  filename: function(req, file, cb) {
+    cb(null, file.originalname);
+  }
+});
+
+let fileFilter = function(req, file, cb) {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+    cb(null, true);
+  } else {
+    cb(null, false)
+  }
+}
+
+let upload = multer({storage: storage,  fileFilter: fileFilter});
+
 
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
@@ -17,7 +32,6 @@ cloudinary.config({
     api_key: process.env.API_KEY,
     api_secret: process.env.API_SECRET
 });
-
 
 
 //SWAGGER SETUP
@@ -62,7 +76,6 @@ const options = {
   app.get("/", swaggerUi.setup(specs, { explorer: true }));
 
 
-
   /**
  * @swagger
  * path:
@@ -88,34 +101,19 @@ const options = {
  */
 
 //UPLOAD ROUTE
-app.post("/upload", function(req, res) {
- 
-    if(req.files == undefined) {
-        return res.json({Error: "Select an image file"});
-    }
-    
-    const file = req.files.file;
-      
-
-       if (file.size > 1000000) {
-        return res.json({Sorry: "File too large, must be less than 1mb"});
-    } 
- 
-    if (file.mimetype != 'image/png') { 
-        if(file.mimetype != 'image/jpeg') {
-            return res.json({Error: "Uplaod a valid image format (png, jpg, jpeg)"})
-        }
-    }
-
-
-    cloudinary.uploader.upload(file.tempFilePath, { responsive_breakpoints: { 
+app.post("/upload", upload.single('file'), function(req, res) {
+      let file = req.file.path;
+      console.log(file)
+      cloudinary.uploader.upload(file, { responsive_breakpoints: { 
         create_derived: true, bytes_step: 20000, min_width: 200, max_width: 200, 
         transformation: { crop: 'fill', aspect_ratio: '1:1', gravity: 'auto' } } }, function(err, result) {
         
         if(err) {
+          console.log(err)
             return res.json({error: err});
-        }
-           result.responsive_breakpoints.forEach(function(image) {
+        } 
+              
+              result.responsive_breakpoints.forEach(function(image) {
             image.breakpoints.forEach(function(responsive_image) {
                 return res.json({responsive_image});
                 
@@ -124,8 +122,6 @@ app.post("/upload", function(req, res) {
            
         });
 }); 
-
-
 
 
 app.listen(5000, function() {
